@@ -2,65 +2,54 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  lint-and-test:
+  node:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          version: 9
 
-      - name: Install Root Dependencies
-        run: npm install
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
 
-      - name: Lint Frontend
-        run: |
-          cd apps/web
-          npm install
-          npm run lint || echo "Linting frontend not fully configured yet"
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Build Frontend
-        run: |
-          cd apps/web
-          npm run build
+      - name: Generate Prisma client
+        run: pnpm --filter api prisma:generate
 
-      - name: Lint Backend
-        run: |
-          cd apps/api
-          npm install
-          npm run lint || echo "Linting backend not fully configured yet"
+      - name: Lint
+        run: pnpm lint
 
-      - name: Build Backend
-        run: |
-          cd apps/api
-          npm run build
+      - name: Typecheck
+        run: pnpm typecheck
 
-  python-test:
+      - name: Test
+        run: pnpm --filter api test
+
+      - name: Build
+        run: pnpm build
+
+  python-worker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Install Worker Dependencies
-        run: |
-          cd services/doc-worker
-          pip install -r requirements.txt
-          pip install pytest
+      - name: Install dependencies
+        run: pip install -r services/doc-worker/requirements.txt
 
-      - name: Test Python Worker
-        run: |
-          cd services/doc-worker
-          # pytest # Uncomment when tests are written
-          echo "Python tests will run here"
+      - name: Syntax check
+        run: python -m py_compile services/doc-worker/worker.py

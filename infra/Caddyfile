@@ -1,10 +1,15 @@
+# Local/dev: listens on :80. For prod replace :80 with the domain
+# (e.g. lingobridge.uz) and Caddy will provision HTTPS automatically (docs/07 §3).
 :80 {
-    route /api/* {
-        uri strip_prefix /api
+    # API keeps its /api prefix — routes are mounted under /api in Fastify.
+    handle /api/* {
         reverse_proxy api:3000
     }
 
-    route /* {
-        reverse_proxy web:5173
+    # Static SPA
+    handle {
+        reverse_proxy web:80
     }
+
+    encode gzip zstd
 }
