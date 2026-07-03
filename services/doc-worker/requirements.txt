@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+aiohttp
+python-docx
+PyMuPDF
+pytesseract
+anthropic
+redis
+pydantic
+minio
