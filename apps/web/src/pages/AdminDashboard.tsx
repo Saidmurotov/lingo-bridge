@@ -1,34 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { fetchApi } from '../lib/api';
+import { uz } from '../lib/strings';
+
+interface AdminStats {
+  users: number;
+  jobsCompleted: number;
+  quickTranslations: number;
+  materials: number;
+}
+
+interface StatCard {
+  label: string;
+  icon: string;
+  key: keyof AdminStats;
+  color: string;
+}
+
+const STAT_CARDS: StatCard[] = [
+  { label: uz.admin.statUsers, icon: '👥', key: 'users', color: 'var(--brand)' },
+  { label: uz.admin.statJobsCompleted, icon: '✅', key: 'jobsCompleted', color: 'var(--ok)' },
+  { label: uz.admin.statQuickTranslations, icon: '⚡', key: 'quickTranslations', color: 'var(--aqua)' },
+  { label: uz.admin.statMaterials, icon: '📚', key: 'materials', color: 'var(--accent)' },
+];
 
 const AdminDashboard: React.FC = () => {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApi('/admin/stats')
+    fetchApi<AdminStats>('/admin/stats')
       .then(res => setStats(res.data))
-      .catch(console.error)
+      .catch((err: unknown) => console.error('Failed to load admin stats', err))
       .finally(() => setLoading(false));
   }, []);
 
-  const STAT_CARDS = [
-    { label: 'Foydalanuvchilar', icon: '👥', key: 'users', color: 'var(--brand)' },
-    { label: 'Bajarilgan buyurtmalar', icon: '✅', key: 'jobsCompleted', color: 'var(--ok)' },
-    { label: "Daromad (so'm)", icon: '💰', key: 'revenue', color: 'var(--accent)' },
-  ];
-
   return (
     <div className="animate-fade-in max-w-5xl">
-      <p className="eyebrow mb-1">Boshqaruv paneli</p>
+      <p className="eyebrow mb-1">{uz.admin.eyebrow}</p>
       <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: '1.75rem', color: 'var(--ink)', marginBottom: '1.5rem' }}>
-        Admin panel
+        {uz.admin.title}
       </h2>
 
       {loading ? (
-        <div className="text-center p-12" style={{ color: 'var(--muted)' }}>Yuklanmoqda...</div>
+        <div className="text-center p-12" style={{ color: 'var(--muted)' }}>{uz.common.loading}</div>
       ) : stats ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           {STAT_CARDS.map(s => (
             <div key={s.key} className="card">
               <div className="flex items-center justify-between mb-3">
@@ -36,18 +52,18 @@ const AdminDashboard: React.FC = () => {
                 <span style={{ fontSize: '1.5rem' }}>{s.icon}</span>
               </div>
               <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '2rem', fontWeight: 500, color: s.color }}>
-                {typeof stats[s.key] === 'number' ? stats[s.key].toLocaleString('uz-UZ') : stats[s.key]}
+                {stats[s.key].toLocaleString('uz-UZ')}
               </p>
             </div>
           ))}
         </div>
       ) : (
-        <div className="card mb-8" style={{ color: 'var(--danger)' }}>Statistikani yuklab bo'lmadi.</div>
+        <div className="card mb-8" style={{ color: 'var(--danger)' }}>{uz.admin.statsError}</div>
       )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="card">
-          <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 500, color: 'var(--ink)', marginBottom: '1rem' }}>Audit jurnali</h3>
+          <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 500, color: 'var(--ink)', marginBottom: '1rem' }}>{uz.admin.auditTitle}</h3>
           <div
             className="mono text-xs overflow-y-auto"
             style={{
@@ -59,16 +75,16 @@ const AdminDashboard: React.FC = () => {
               color: 'var(--muted)',
             }}
           >
-            [Audit log ma'lumotlari bu yerda ko'rinadi]
+            {uz.admin.auditPlaceholder}
           </div>
         </div>
 
         <div className="card">
-          <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 500, color: 'var(--ink)', marginBottom: '1rem' }}>Tizim holati</h3>
-          {['API server', 'Redis', 'MinIO', 'doc-worker'].map(svc => (
+          <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 500, color: 'var(--ink)', marginBottom: '1rem' }}>{uz.admin.systemTitle}</h3>
+          {uz.admin.services.map(svc => (
             <div key={svc} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--line)' }}>
               <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>{svc}</span>
-              <span className="badge badge-done">Ishlayapti</span>
+              <span className="badge badge-done">{uz.admin.serviceRunning}</span>
             </div>
           ))}
         </div>

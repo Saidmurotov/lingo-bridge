@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import type { LoginResponse } from 'shared';
 import { useAuth } from '../components/AuthProvider';
 import { fetchApi } from '../lib/api';
-import { useState } from 'react';
-
-/* Bridge animation words cycling through three languages */
-const BRIDGE_WORDS = ['Salom', 'Hello', 'Привет'];
+import { uz } from '../lib/strings';
 
 const Login: React.FC = () => {
   const { login } = useAuth();
@@ -17,23 +15,23 @@ const Login: React.FC = () => {
   const [wordIdx, setWordIdx] = useState(0);
 
   React.useEffect(() => {
-    const id = setInterval(() => setWordIdx(i => (i + 1) % BRIDGE_WORDS.length), 2400);
+    const id = setInterval(() => setWordIdx(i => (i + 1) % uz.login.bridgeWords.length), 2400);
     return () => clearInterval(id);
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const response = await fetchApi('/auth/login', {
+      const response = await fetchApi<LoginResponse>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
       login(response.data.user, response.data.accessToken, response.data.refreshToken);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Kirishda xato yuz berdi');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : uz.login.genericError);
     } finally {
       setLoading(false);
     }
@@ -58,7 +56,7 @@ const Login: React.FC = () => {
           <line x1="20" y1="190" x2="380" y2="190" />
         </svg>
         <div className="relative z-10 text-center text-white px-8">
-          <p className="eyebrow mb-4" style={{ color: 'rgba(255,255,255,0.7)' }}>Til Ko'prigi</p>
+          <p className="eyebrow mb-4" style={{ color: 'rgba(255,255,255,0.7)' }}>{uz.login.brandEyebrow}</p>
           {/* Cycling greeting — the bridge metaphor */}
           <div style={{ height: '5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <h1
@@ -66,10 +64,10 @@ const Login: React.FC = () => {
               className="animate-slide-up"
               style={{ fontFamily: 'Fraunces, serif', fontSize: '4rem', fontWeight: 500 }}
             >
-              {BRIDGE_WORDS[wordIdx]}
+              {uz.login.bridgeWords[wordIdx]}
             </h1>
           </div>
-          <p className="mt-4 text-lg opacity-80">Hujjat tarjimasi · Tezkor tarjima · AI materiallar</p>
+          <p className="mt-4 text-lg opacity-80">{uz.login.servicesLine}</p>
         </div>
       </div>
 
@@ -79,10 +77,10 @@ const Login: React.FC = () => {
           <div className="mb-8 text-center md:text-left">
             <span className="text-3xl">🌉</span>
             <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: '1.75rem', color: 'var(--ink)', marginTop: '0.5rem' }}>
-              Xush kelibsiz
+              {uz.login.title}
             </h2>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-              Lingo Bridge'ga kirish
+              {uz.login.subtitle}
             </p>
           </div>
 
@@ -94,26 +92,26 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>Email</label>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.login.emailLabel}</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
                 className="field"
-                placeholder="siz@misol.uz"
+                placeholder={uz.login.emailPlaceholder}
                 id="login-email"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>Parol</label>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.login.passwordLabel}</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
                 className="field"
-                placeholder="••••••••"
+                placeholder={uz.login.passwordPlaceholder}
                 id="login-password"
               />
             </div>
@@ -123,14 +121,14 @@ const Login: React.FC = () => {
               className="btn btn-primary w-full py-2.5 mt-2"
               id="login-submit"
             >
-              {loading ? 'Kirilmoqda...' : 'Kirish'}
+              {loading ? uz.login.submitting : uz.login.submit}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm" style={{ color: 'var(--muted)' }}>
-            Hisobingiz yo'qmi?{' '}
+            {uz.login.noAccount}{' '}
             <Link to="/register" style={{ color: 'var(--brand)', fontWeight: 500 }}>
-              Ro'yxatdan o'ting
+              {uz.login.registerLink}
             </Link>
           </p>
         </div>

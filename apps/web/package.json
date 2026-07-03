@@ -1,5 +1,5 @@
 {
-  "name": "lingo-bridge-web",
+  "name": "web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,16 +7,20 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.16.0",
-    "zustand": "^4.5.0",
-    "@tanstack/react-query": "^5.32.0"
+    "shared": "workspace:*"
   },
   "devDependencies": {
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
+    "@typescript-eslint/eslint-plugin": "^7",
+    "@typescript-eslint/parser": "^7",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.8",

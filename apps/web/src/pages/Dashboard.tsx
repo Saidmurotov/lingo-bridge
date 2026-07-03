@@ -1,17 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
+import { uz } from '../lib/strings';
 
 const QUICK_ACTIONS = [
-  { to: '/quick-translate',      icon: '⚡', label: 'Tezkor tarjima',   desc: 'Matnni bir lahzada tarjima qiling', color: 'var(--aqua-soft)', border: 'var(--aqua)' },
-  { to: '/document-translation', icon: '📄', label: 'Hujjat tarjimasi', desc: 'PDF, DOCX hujjatlarni tarjima qiling', color: 'var(--accent-soft)', border: 'var(--accent)' },
-  { to: '/material',             icon: '📚', label: 'Material yaratish', desc: "AI yordamida o'quv materiallar yarating", color: 'var(--aqua-soft)', border: 'var(--brand)' },
+  { to: '/quick-translate',      icon: '⚡', label: uz.dashboard.actionQuickTranslate, desc: uz.dashboard.actionQuickTranslateDesc, color: 'var(--aqua-soft)', border: 'var(--aqua)' },
+  { to: '/document-translation', icon: '📄', label: uz.dashboard.actionDocuments,      desc: uz.dashboard.actionDocumentsDesc,      color: 'var(--accent-soft)', border: 'var(--accent)' },
+  { to: '/material',             icon: '📚', label: uz.dashboard.actionMaterials,      desc: uz.dashboard.actionMaterialsDesc,      color: 'var(--aqua-soft)', border: 'var(--brand)' },
 ];
 
 const STAT_CARDS = [
-  { label: 'Jami tarjimalar', value: '—', icon: '⚡' },
-  { label: 'Hujjatlar',       value: '—', icon: '📄' },
-  { label: 'Materiallar',     value: '—', icon: '📚' },
+  { label: uz.dashboard.statTranslations, value: '—', icon: '⚡' },
+  { label: uz.dashboard.statDocuments,    value: '—', icon: '📄' },
+  { label: uz.dashboard.statMaterials,    value: '—', icon: '📚' },
 ];
 
 const Dashboard: React.FC = () => {
@@ -27,11 +28,11 @@ const Dashboard: React.FC = () => {
         {/* decorative orb */}
         <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, background: 'rgba(255,255,255,0.08)', borderRadius: '50%' }} />
         <div className="relative z-10">
-          <p className="eyebrow mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Xush kelibsiz</p>
+          <p className="eyebrow mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>{uz.dashboard.welcomeEyebrow}</p>
           <h1 style={{ fontFamily: 'Fraunces, serif', fontSize: '2rem', fontWeight: 500, marginBottom: '0.5rem' }}>
-            {user?.fullName || user?.email || 'Foydalanuvchi'}
+            {user?.fullName || user?.email || uz.dashboard.fallbackUser}
           </h1>
-          <p style={{ opacity: 0.85, fontSize: '1rem' }}>Bugun nima qilmoqchisiz?</p>
+          <p style={{ opacity: 0.85, fontSize: '1rem' }}>{uz.dashboard.prompt}</p>
         </div>
       </div>
 
@@ -48,7 +49,7 @@ const Dashboard: React.FC = () => {
 
       {/* Quick action cards */}
       <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: '1.25rem', color: 'var(--ink)', marginBottom: '1rem' }}>
-        Tezkor amallar
+        {uz.dashboard.quickActionsTitle}
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {QUICK_ACTIONS.map(action => (

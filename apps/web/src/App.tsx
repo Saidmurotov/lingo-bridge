@@ -19,7 +19,6 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) 
 
 const AppShell: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
 
   // Public layout (login / register) — no sidebar
   return (
