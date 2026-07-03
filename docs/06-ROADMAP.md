@@ -6,14 +6,14 @@
 
 Maqsad: bo'sh, lekin ishlaydigan monorepo.
 
-- [ ] Monorepo (pnpm workspaces): `apps/web`, `apps/api`, `packages/shared`, `services/doc-worker`, `infra`.
-- [ ] ESLint + Prettier + TypeScript strict (butun repo bo'yicha).
-- [ ] `infra/docker-compose.yml`: Postgres + Redis + MinIO.
-- [ ] `apps/api`: Fastify skeleton, health endpoint, Prisma ulanishi.
-- [ ] Prisma sxema (`docs/03`) + birinchi migratsiya + seed.
-- [ ] `apps/web`: Vite + React + Tailwind, design token'lar (`docs/05`), routing skeleton.
-- [ ] `.env.example` + `docs/07` bo'yicha env.
-- [ ] CI: lint + typecheck + test (GitHub Actions).
+- [x] Monorepo (pnpm workspaces): `apps/web`, `apps/api`, `packages/shared`, `services/doc-worker`, `infra`.
+- [x] ESLint + Prettier + TypeScript strict (butun repo bo'yicha).
+- [x] `infra/docker-compose.yml`: Postgres + Redis + MinIO.
+- [x] `apps/api`: Fastify skeleton, health endpoint, Prisma ulanishi.
+- [x] Prisma sxema (`docs/03`) + birinchi migratsiya + seed.
+- [x] `apps/web`: Vite + React + Tailwind, design token'lar (`docs/05`), routing skeleton.
+- [x] `.env.example` + `docs/07` bo'yicha env.
+- [x] CI: lint + typecheck + test (GitHub Actions).
 
 **Qabul mezoni:** `pnpm dev` ishlaydi, web bo'sh sahifani ochadi, api health `200` qaytaradi, DB migratsiya o'tadi.
 
@@ -24,30 +24,30 @@ Maqsad: bo'sh, lekin ishlaydigan monorepo.
 Maqsad: mijoz kirib, AI xizmatlaridan foydalanadi. **Eng muhim bosqich.**
 
 ### Auth
-- [ ] `register / login / refresh / logout / me` (`docs/04` §2).
-- [ ] Parol `argon2` hash; access + refresh token (rotatsiya).
-- [ ] Auth middleware + `requireRole`.
-- [ ] Frontend: Login sahifasi (prototipga mos), token saqlash, protected route'lar.
+- [x] `register / login / refresh / logout / me` (`docs/04` §2).
+- [x] Parol `argon2` hash; access + refresh token (rotatsiya).
+- [x] Auth middleware + `requireRole`.
+- [x] Frontend: Login sahifasi (prototipga mos), token saqlash, protected route'lar.
 
 ### Tezkor tarjima
-- [ ] `POST /api/translate` — `lib/ai.ts` orqali Claude, tarixga yozish.
-- [ ] Avto-aniqlash + akademik rejim.
+- [x] `POST /api/translate` — `lib/ai.ts` orqali Claude, tarixga yozish.
+- [x] Avto-aniqlash + akademik rejim.
 - [ ] Frontend: ikki panelli oyna, swap, belgi hisoblagich, TTS (browser), nusxalash, so'nggi tarjimalar.
 
 ### O'quv materiali
-- [ ] `POST /api/materials` — Claude, saqlash.
+- [x] `POST /api/materials` — Claude, saqlash.
 - [ ] Frontend: fan/mavzu/daraja/tur/til/izoh formasi, natija paneli (nusxa/yuklab olish).
-- [ ] `GET /api/materials`, `GET /api/materials/:id`.
+- [x] `GET /api/materials`, `GET /api/materials/:id`.
 
 ### Dashboard + Tarix
-- [ ] `GET /api/history` (birlashtirilgan).
+- [x] `GET /api/history` (birlashtirilgan).
 - [ ] Dashboard: statistika + tezkor amallar + so'nggi faoliyat.
-- [ ] Tarix sahifasi + filtr.
+- [x] Tarix sahifasi + filtr.
 
 ### Umumiy
 - [ ] Dark mode + mobil responsive (prototip token/layoutidan).
-- [ ] Xato holatlari mijozga tushunarli xabar sifatida.
-- [ ] AI endpoint'lariga rate limit.
+- [x] Xato holatlari mijozga tushunarli xabar sifatida.
+- [x] AI endpoint'lariga rate limit.
 
 **Qabul mezoni:** ro'yxatdan o'tgan mijoz tezkor tarjima va material yaratadi (real AI), tarixda ko'radi, mobil/dark ishlaydi.
 
@@ -58,24 +58,24 @@ Maqsad: mijoz kirib, AI xizmatlaridan foydalanadi. **Eng muhim bosqich.**
 Maqsad: fayl yuklab, tarjimasini olish. Async job + doc-worker.
 
 ### Backend + queue
-- [ ] `POST /api/documents` (multipart, fayl validatsiya, MinIO'ga saqlash, job yaratish).
-- [ ] Redis'ga job qo'yish (`docs/04` §8 payload).
-- [ ] `GET /api/documents`, `GET /api/documents/:id`.
-- [ ] `GET .../download` — presigned URL, egalik tekshiruvi.
-- [ ] Holat yangilash: polling (MVP) yoki SSE.
+- [x] `POST /api/documents` (multipart, fayl validatsiya, MinIO'ga saqlash, job yaratish).
+- [x] Redis'ga job qo'yish (`docs/04` §8 payload).
+- [x] `GET /api/documents`, `GET /api/documents/:id`.
+- [x] `GET .../download` — presigned URL, egalik tekshiruvi.
+- [x] Holat yangilash: polling (MVP) yoki SSE.
 
 ### doc-worker (Python)
-- [ ] Redis'dan job iste'mol qilish (BRPOP/worker loop).
-- [ ] **DOCX (digital):** `python-docx` bilan matn ajratish → Claude tarjima → stil saqlab qaytarish. **(Birinchi shu ishlab turishi kerak.)**
-- [ ] **Skan/rasm:** Tesseract OCR → tarjima → toza DOCX/PDF.
-- [ ] **PDF (digital):** PyMuPDF matn bloklari; yoki PDF→DOCX→tarjima yo'li.
-- [ ] Natijani MinIO'ga yozish, DB'da `JobFile(result)` + status yangilash.
-- [ ] Xato bo'lsa `FAILED` + `errorMessage`.
+- [x] Redis'dan job iste'mol qilish (BRPOP/worker loop).
+- [x] **DOCX (digital):** `python-docx` bilan matn ajratish → Claude tarjima → stil saqlab qaytarish. **(Birinchi shu ishlab turishi kerak.)**
+- [x] **Skan/rasm:** Tesseract OCR → tarjima → toza DOCX/PDF.
+- [x] **PDF (digital):** PyMuPDF matn bloklari; yoki PDF→DOCX→tarjima yo'li.
+- [x] Natijani MinIO'ga yozish, DB'da `JobFile(result)` + status yangilash.
+- [x] Xato bo'lsa `FAILED` + `errorMessage`.
 
 ### Frontend
 - [ ] Drag-and-drop ko'p fayl yuklash + hujjat turi + opsiyalar.
-- [ ] Job holat kartalari (progress + badge + yuklab olish).
-- [ ] Polling/SSE bilan jonli yangilanish.
+- [x] Job holat kartalari (progress + badge + yuklab olish).
+- [x] Polling/SSE bilan jonli yangilanish.
 
 **Qabul mezoni:** mijoz DOCX yuklab, boshqa tilga tarjimasini yuklab oladi; skan hujjat uchun hech bo'lmasa toza matnli tarjima chiqadi.
 
@@ -85,9 +85,9 @@ Maqsad: fayl yuklab, tarjimasini olish. Async job + doc-worker.
 
 Maqsad: professional/notarial xizmatlar va monetizatsiya.
 
-- [ ] Tarjimon roli UI: tekshiruvdagi (`REVIEW`) buyurtmalar ro'yxati.
-- [ ] `POST /api/documents/:id/verify` — AI qoralamasini tahrirlab tasdiqlash.
-- [ ] Notarial belgilangan job avtomatik `DONE` bo'lmaydi → `REVIEW` → tarjimon tasdig'i.
+- [x] Tarjimon roli UI: tekshiruvdagi (`REVIEW`) buyurtmalar ro'yxati.
+- [x] `POST /api/documents/:id/verify` — AI qoralamasini tahrirlab tasdiqlash.
+- [x] Notarial belgilangan job avtomatik `DONE` bo'lmaydi → `REVIEW` → tarjimon tasdig'i.
 - [ ] Admin panel: foydalanuvchilar, buyurtmalar, statistika.
 - [ ] (Opsional) Narx + to'lov: Payme/Click integratsiyasi, buyurtma → to'lov → ish boshlanadi.
 - [ ] Audit log ko'rinishi (admin).
