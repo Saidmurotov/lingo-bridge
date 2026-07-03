@@ -1,3 +1,5 @@
+// Authoritative schema — mirrors docs/03-DATABASE.md. Change the doc first, then this file.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,66 +16,166 @@ enum Role {
 }
 
 enum JobStatus {
-  PENDING
+  QUEUED
   PROCESSING
-  COMPLETED
+  REVIEW
+  DONE
   FAILED
 }
 
+enum DocType {
+  DIPLOMA
+  TRANSCRIPT
+  CERTIFICATE
+  DISSERTATION
+  OTHER
+}
+
+enum Lang {
+  UZ
+  EN
+  RU
+}
+
+enum CefrLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum MaterialType {
+  LESSON_PLAN
+  EXERCISES
+  PRESENTATION
+  READING
+  TEST
+  VOCABULARY
+}
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      Role     @default(CLIENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  role         Role     @default(CLIENT)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  jobs      Job[]
-  history   History[]
-  materials Material[]
+  refreshTokens     RefreshToken[]
+  jobs              TranslationJob[]   @relation("JobOwner")
+  reviewingJobs     TranslationJob[]   @relation("JobReviewer")
+  quickTranslations QuickTranslation[]
+  materials         Material[]
+  auditLogs         AuditLog[]
+
+  @@map("users")
 }
 
-model Job {
-  id          String    @id @default(uuid())
-  userId      String
-  status      JobStatus @default(PENDING)
-  sourceLang  String
-  targetLang  String
-  documentId  String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
 
-  user        User      @relation(fields: [userId], references: [id])
-  document    Document? @relation(fields: [documentId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
-model Document {
-  id           String   @id @default(uuid())
-  originalName String
-  storagePath  String
-  sizeBytes    Int
-  createdAt    DateTime @default(now())
+model TranslationJob {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  docType      DocType   @map("doc_type")
+  fromLang     Lang      @map("from_lang")
+  toLang       Lang      @map("to_lang")
+  notarize     Boolean   @default(false)
+  keepFormat   Boolean   @default(true) @map("keep_format")
+  urgent       Boolean   @default(false)
+  status       JobStatus @default(QUEUED)
+  errorMessage String?   @map("error_message")
+  reviewerId   String?   @map("reviewer_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  completedAt  DateTime? @map("completed_at")
 
-  jobs         Job[]
+  user     User      @relation("JobOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?     @relation("JobReviewer", fields: [reviewerId], references: [id])
+  files    JobFile[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("translation_jobs")
 }
 
-model History {
-  id           String   @id @default(uuid())
-  userId       String
-  type         String   // 'TEXT', 'DOCUMENT'
-  details      String
-  createdAt    DateTime @default(now())
+model JobFile {
+  id           String   @id @default(cuid())
+  jobId        String   @map("job_id")
+  kind         String // "source" or "result"
+  originalName String   @map("original_name")
+  storageKey   String   @map("storage_key")
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  user         User     @relation(fields: [userId], references: [id])
+  job TranslationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("job_files")
+}
+
+model QuickTranslation {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  fromLang   Lang?    @map("from_lang")
+  toLang     Lang     @map("to_lang")
+  sourceText String   @map("source_text") @db.Text
+  resultText String   @map("result_text") @db.Text
+  academic   Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("quick_translations")
 }
 
 model Material {
-  id           String   @id @default(uuid())
-  userId       String
-  title        String
-  contentUrl   String
-  createdAt    DateTime @default(now())
+  id         String       @id @default(cuid())
+  userId     String       @map("user_id")
+  subject    String
+  topic      String
+  level      CefrLevel
+  type       MaterialType
+  outputLang Lang         @map("output_lang")
+  notes      String?      @db.Text
+  content    String       @db.Text
+  createdAt  DateTime     @default(now()) @map("created_at")
 
-  user         User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("materials")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
 }
