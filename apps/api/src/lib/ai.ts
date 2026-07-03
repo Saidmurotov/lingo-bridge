@@ -7,6 +7,8 @@ import { env } from './env';
 import { AppError } from './errors';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+// User-facing (docs/04 error messages are Uzbek); the technical cause is logged server-side.
+const UZ_AI_ERROR = "AI xizmati vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring.";
 const MAX_RETRIES = 3;
 
 interface AnthropicOptions {
@@ -37,7 +39,7 @@ async function callAnthropic(prompt: string, options: AnthropicOptions): Promise
 
       const text: unknown = response.data?.content?.[0]?.text;
       if (typeof text !== 'string' || text.length === 0) {
-        throw new AppError('INTERNAL', 'AI response had unexpected shape');
+        throw new AppError('INTERNAL', UZ_AI_ERROR);
       }
       return text;
     } catch (error) {
@@ -50,7 +52,7 @@ async function callAnthropic(prompt: string, options: AnthropicOptions): Promise
       }
       if (error instanceof AppError) throw error;
       // Do not leak provider error details (may echo request content) to callers.
-      throw new AppError('INTERNAL', 'AI service unavailable');
+      throw new AppError('INTERNAL', UZ_AI_ERROR);
     }
   }
 }
@@ -59,11 +61,11 @@ async function callAnthropic(prompt: string, options: AnthropicOptions): Promise
 function extractJson(text: string): unknown {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
-  if (start === -1 || end <= start) throw new AppError('INTERNAL', 'AI returned non-JSON output');
+  if (start === -1 || end <= start) throw new AppError('INTERNAL', UZ_AI_ERROR);
   try {
     return JSON.parse(text.slice(start, end + 1));
   } catch {
-    throw new AppError('INTERNAL', 'AI returned malformed JSON');
+    throw new AppError('INTERNAL', UZ_AI_ERROR);
   }
 }
 
@@ -101,7 +103,7 @@ export async function quickTranslate(input: QuickTranslateInput): Promise<QuickT
 
   const raw = await callAnthropic(prompt, { maxTokens: 2048, system });
   const parsed = translateResultSchema.safeParse(extractJson(raw));
-  if (!parsed.success) throw new AppError('INTERNAL', 'AI translation output failed validation');
+  if (!parsed.success) throw new AppError('INTERNAL', UZ_AI_ERROR);
   return parsed.data;
 }
 

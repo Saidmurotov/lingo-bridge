@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import type { UserDto } from 'shared';
 
 interface AuthContextType {
@@ -9,19 +9,21 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserDto | null>(null);
+// Hydrate synchronously: an effect would run after the first render, so
+// PrivateRoute would bounce logged-in users to /login on every page refresh.
+function readStoredUser(): UserDto | null {
+  const storedUser = localStorage.getItem('user');
+  if (!storedUser) return null;
+  try {
+    return JSON.parse(storedUser) as UserDto;
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
+}
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser) as UserDto);
-      } catch {
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<UserDto | null>(readStoredUser);
 
   const login = (userData: UserDto, accessToken: string, refreshToken: string): void => {
     setUser(userData);

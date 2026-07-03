@@ -87,7 +87,7 @@ describe('quickTranslate', () => {
       const pending = quickTranslate({ text: 'Hello', fromLang: 'EN', toLang: 'UZ', academic: false });
       const assertion = expect(pending).rejects.toMatchObject({
         code: 'INTERNAL',
-        message: 'AI service unavailable',
+        message: "AI xizmati vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring.",
       });
       await vi.runAllTimersAsync();
       await assertion;

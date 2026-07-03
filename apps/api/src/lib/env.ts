@@ -1,4 +1,11 @@
+import path from 'node:path';
+import dotenv from 'dotenv';
 import { z } from 'zod';
+
+// Local dev: the canonical .env lives at the repo root (docs/07 §1).
+// In Docker the variables come from the environment, so missing files are fine.
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+dotenv.config(); // also honor a package-local .env if present
 
 // Fail fast on missing secrets — no insecure fallbacks (docs/07 §1, §6).
 const envSchema = z.object({
