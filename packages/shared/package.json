@@ -1,6 +1,13 @@
 {
   "name": "shared",
   "version": "0.1.0",
-  "main": "index.js",
-  "types": "index.d.ts"
+  "private": true,
+  "types": "index.d.ts",
+  "scripts": {
+    "lint": "echo \"shared: nothing to lint\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
 }

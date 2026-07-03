@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+
+# Env — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+apps/web/dist/
+apps/api/dist/
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
