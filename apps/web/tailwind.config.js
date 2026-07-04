@@ -1,17 +1,13 @@
+// Design tokens live in index.css as CSS variables (docs/05-DESIGN-SYSTEM.md).
+// Tailwind provides layout/spacing utilities; colors come from var(--*) values.
 module.exports = {
-  content: ['./src/**/*.{js,ts,jsx,tsx}', '../../docs/**/*.md'],
-  darkMode: 'class', // enable dark mode via class
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      colors: {
-        primary: 'hsl(210, 80%, 55%)', // vibrant blue
-        secondary: 'hsl(260, 70%, 60%)', // purple
-        accent: 'hsl(45, 90%, 55%)', // golden
-        background: 'hsl(210, 20%, 5%)', // dark background
-        surface: 'hsl(210, 20%, 10%)', // card surface
-      },
       fontFamily: {
-        sans: ['"Inter"', 'system-ui', 'sans-serif'],
+        sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
       },
     },
   },
