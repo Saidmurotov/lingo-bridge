@@ -1,5 +1,6 @@
 // Document translation per docs/04 §5: multipart upload → MinIO → TranslationJob
 // → Redis queue (docs/04 §8). The Python doc-worker reports back via PUT /:id/status.
+import { timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import type { JobStatus, Role, WorkerJobPayload } from 'shared';
@@ -62,6 +63,14 @@ function canReadJob(user: { sub: string; role: Role }, job: { userId: string }):
   return job.userId === user.sub || user.role === 'TRANSLATOR' || user.role === 'ADMIN';
 }
 
+/** Constant-time comparison so the worker token can't be probed byte-by-byte. */
+function isValidWorkerToken(header: unknown): boolean {
+  if (typeof header !== 'string') return false;
+  const provided = Buffer.from(header);
+  const expected = Buffer.from(env.WORKER_TOKEN);
+  return provided.length === expected.length && timingSafeEqual(provided, expected);
+}
+
 async function readMultipart(request: FastifyRequest): Promise<{ fields: Record<string, string>; files: UploadedFile[] }> {
   const fields: Record<string, string> = {};
   const files: UploadedFile[] = [];
@@ -97,59 +106,68 @@ async function readMultipart(request: FastifyRequest): Promise<{ fields: Record<
 }
 
 export default async function documentsRoutes(app: FastifyInstance): Promise<void> {
-  app.post('/', { preValidation: [app.authenticate] }, async (request, reply) => {
-    const { fields, files } = await readMultipart(request);
-    if (files.length === 0) throw new AppError('INVALID_INPUT', 'Kamida bitta fayl yuklang');
-    const options = validate(optionsSchema, fields);
+  app.post(
+    '/',
+    {
+      preValidation: [app.authenticate],
+      // Uploads are buffered in memory (up to MAX_UPLOAD_MB × 10 files), so
+      // keep the per-user request rate low to bound memory use.
+      config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    },
+    async (request, reply) => {
+      const { fields, files } = await readMultipart(request);
+      if (files.length === 0) throw new AppError('INVALID_INPUT', 'Kamida bitta fayl yuklang');
+      const options = validate(optionsSchema, fields);
 
-    const job = await prisma.translationJob.create({
-      data: { userId: request.user.sub, ...options },
-    });
+      const job = await prisma.translationJob.create({
+        data: { userId: request.user.sub, ...options },
+      });
 
-    try {
-      const sourceFiles: WorkerJobPayload['sourceFiles'] = [];
-      const fileDtos: Array<{ id: string; originalName: string; sizeBytes: number }> = [];
+      try {
+        const sourceFiles: WorkerJobPayload['sourceFiles'] = [];
+        const fileDtos: Array<{ id: string; originalName: string; sizeBytes: number }> = [];
 
-      for (const [index, file] of files.entries()) {
-        const storageKey = `jobs/${job.id}/source/${index}_${sanitizeFileName(file.originalName)}`;
-        await uploadObject(storageKey, file.data, file.mimeType);
-        const record = await prisma.jobFile.create({
-          data: {
-            jobId: job.id,
-            kind: 'source',
-            originalName: file.originalName,
-            storageKey,
-            mimeType: file.mimeType,
-            sizeBytes: file.data.length,
-          },
+        for (const [index, file] of files.entries()) {
+          const storageKey = `jobs/${job.id}/source/${index}_${sanitizeFileName(file.originalName)}`;
+          await uploadObject(storageKey, file.data, file.mimeType);
+          const record = await prisma.jobFile.create({
+            data: {
+              jobId: job.id,
+              kind: 'source',
+              originalName: file.originalName,
+              storageKey,
+              mimeType: file.mimeType,
+              sizeBytes: file.data.length,
+            },
+          });
+          sourceFiles.push({ fileId: record.id, storageKey, mimeType: file.mimeType });
+          fileDtos.push({ id: record.id, originalName: record.originalName, sizeBytes: record.sizeBytes });
+        }
+
+        await enqueueDocJob({
+          jobId: job.id,
+          docType: options.docType,
+          fromLang: options.fromLang,
+          toLang: options.toLang,
+          notarize: options.notarize,
+          keepFormat: options.keepFormat,
+          sourceFiles,
         });
-        sourceFiles.push({ fileId: record.id, storageKey, mimeType: file.mimeType });
-        fileDtos.push({ id: record.id, originalName: record.originalName, sizeBytes: record.sizeBytes });
+
+        await prisma.auditLog.create({
+          data: { userId: request.user.sub, action: 'job.create', entityType: 'TranslationJob', entityId: job.id },
+        });
+
+        return reply.status(202).send({ data: { jobId: job.id, status: job.status, files: fileDtos } });
+      } catch (error) {
+        await prisma.translationJob.update({
+          where: { id: job.id },
+          data: { status: 'FAILED', errorMessage: 'Upload or enqueue failed' },
+        });
+        throw error;
       }
-
-      await enqueueDocJob({
-        jobId: job.id,
-        docType: options.docType,
-        fromLang: options.fromLang,
-        toLang: options.toLang,
-        notarize: options.notarize,
-        keepFormat: options.keepFormat,
-        sourceFiles,
-      });
-
-      await prisma.auditLog.create({
-        data: { userId: request.user.sub, action: 'job.create', entityType: 'TranslationJob', entityId: job.id },
-      });
-
-      return reply.status(202).send({ data: { jobId: job.id, status: job.status, files: fileDtos } });
-    } catch (error) {
-      await prisma.translationJob.update({
-        where: { id: job.id },
-        data: { status: 'FAILED', errorMessage: 'Upload or enqueue failed' },
-      });
-      throw error;
-    }
-  });
+    },
+  );
 
   app.get('/', { preValidation: [app.authenticate] }, async (request) => {
     const { page, limit, status } = validate(listQuerySchema, request.query);
@@ -215,7 +233,7 @@ export default async function documentsRoutes(app: FastifyInstance): Promise<voi
 
   // Worker callback — authenticated via shared WORKER_TOKEN, not user JWT.
   app.put('/:id/status', async (request) => {
-    if (request.headers['x-worker-token'] !== env.WORKER_TOKEN) {
+    if (!isValidWorkerToken(request.headers['x-worker-token'])) {
       throw new AppError('UNAUTHORIZED', 'Invalid worker token');
     }
     const { id } = validate(z.object({ id: z.string() }), request.params);

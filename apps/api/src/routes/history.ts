@@ -32,12 +32,22 @@ export default async function historyRoutes(app: FastifyInstance): Promise<void>
     const wantMaterial = !type || type === 'material';
     const wantDocument = !type || type === 'document';
 
+    // True totals come from count(); the row queries below only fetch the
+    // window being paginated, so merged.length must not be used as the total.
+    const [quickTotal, materialTotal, jobTotal] = await Promise.all([
+      wantQuick ? prisma.quickTranslation.count({ where: { userId } }) : 0,
+      wantMaterial ? prisma.material.count({ where: { userId } }) : 0,
+      wantDocument ? prisma.translationJob.count({ where: { userId } }) : 0,
+    ]);
+
     const [quick, materials, jobs] = await Promise.all([
       wantQuick
         ? prisma.quickTranslation.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: page * limit,
+            // sourceText can be 10k chars; the summary only needs the first 60.
+            select: { id: true, fromLang: true, toLang: true, sourceText: true, createdAt: true },
           })
         : [],
       wantMaterial
@@ -53,6 +63,7 @@ export default async function historyRoutes(app: FastifyInstance): Promise<void>
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: page * limit,
+            select: { id: true, docType: true, fromLang: true, toLang: true, status: true, createdAt: true },
           })
         : [],
     ]);
@@ -79,7 +90,7 @@ export default async function historyRoutes(app: FastifyInstance): Promise<void>
       })),
     ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-    const total = merged.length;
+    const total = quickTotal + materialTotal + jobTotal;
     const items = merged.slice((page - 1) * limit, page * limit);
 
     return { data: { items, total, page, limit } };
