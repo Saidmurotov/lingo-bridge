@@ -58,9 +58,11 @@ LANG_NAMES = {"UZ": "Uzbek (Latin script)", "EN": "English", "RU": "Russian"}
 async def translate_text(text: str, from_lang: str, to_lang: str) -> str:
     if not text.strip():
         return text
+    # 8192 output tokens comfortably covers a 6000-char chunk (translate_long_text);
+    # 4096 risked silently truncated translations on dense pages.
     resp = await ai_client.messages.create(
         model=ANTHROPIC_MODEL,
-        max_tokens=4096,
+        max_tokens=8192,
         system=(
             "You are a certified document translator. Translate exactly, preserving "
             "numbers, names, dates and formatting markers. Output only the translation."
