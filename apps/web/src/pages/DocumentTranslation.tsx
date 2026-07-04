@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { DocType, JobFileDto, JobStatus, Lang, TranslationJobDto } from 'shared';
 import { fetchApi } from '../lib/api';
 import { uz } from '../lib/strings';
 
 const DOC_TYPES: DocType[] = ['DIPLOMA', 'TRANSCRIPT', 'CERTIFICATE', 'DISSERTATION', 'OTHER'];
 const LANGS: Lang[] = ['UZ', 'EN', 'RU'];
+// Mirror the server's upload rules (documents route) so users get instant feedback.
+const ALLOWED_EXTENSIONS = /\.(pdf|docx|jpe?g|png)$/i;
+const MAX_FILE_MB = 20;
 
 /** Client-side view of the job lifecycle: server statuses plus a local uploading state. */
 type ViewStatus = JobStatus | 'UPLOADING';
@@ -25,6 +29,8 @@ interface UploadResponse {
 }
 
 const DocumentTranslation: React.FC = () => {
+  // History deep-links here with ?job=<id> to re-open an existing order.
+  const [searchParams] = useSearchParams();
   const [file, setFile] = useState<File | null>(null);
   const [docType, setDocType] = useState<DocType>('DIPLOMA');
   const [fromLang, setFromLang] = useState<Lang>('UZ');
@@ -38,7 +44,19 @@ const DocumentTranslation: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const handleFile = (f: File | null): void => setFile(f);
+  const handleFile = (f: File | null): void => {
+    if (!f) return;
+    if (!ALLOWED_EXTENSIONS.test(f.name)) {
+      setError(uz.documentTranslation.invalidTypeError);
+      return;
+    }
+    if (f.size > MAX_FILE_MB * 1024 * 1024) {
+      setError(uz.documentTranslation.tooLargeError);
+      return;
+    }
+    setError(null);
+    setFile(f);
+  };
 
   const handleDrop = (e: React.DragEvent): void => {
     e.preventDefault();
@@ -46,6 +64,15 @@ const DocumentTranslation: React.FC = () => {
     const f = e.dataTransfer.files[0];
     if (f) handleFile(f);
   };
+
+  // Re-open an existing job when arriving from History.
+  useEffect(() => {
+    const existing = searchParams.get('job');
+    if (existing) {
+      setJobId(existing);
+      setStatus('QUEUED'); // provisional until the first poll returns the real status
+    }
+  }, [searchParams]);
 
   const handleUpload = async (): Promise<void> => {
     if (!file) return;
@@ -156,21 +183,21 @@ const DocumentTranslation: React.FC = () => {
         <div className="card mb-6 space-y-4 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.documentTranslation.docTypeLabel}</label>
+              <label htmlFor="doc-type" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.documentTranslation.docTypeLabel}</label>
               <select value={docType} onChange={e => setDocType(e.target.value as DocType)} className="field" id="doc-type">
                 {DOC_TYPES.map(t => <option key={t} value={t}>{uz.docTypes[t]}</option>)}
               </select>
             </div>
             <div className="flex gap-2 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.documentTranslation.fromLabel}</label>
+                <label htmlFor="doc-from" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.documentTranslation.fromLabel}</label>
                 <select value={fromLang} onChange={e => setFromLang(e.target.value as Lang)} className="field" id="doc-from">
                   {LANGS.map(l => <option key={l} value={l}>{uz.langs[l]}</option>)}
                 </select>
               </div>
               <span style={{ color: 'var(--muted)', paddingBottom: '0.6rem', fontSize: '1.25rem' }}>→</span>
               <div className="flex-1">
-                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.documentTranslation.toLabel}</label>
+                <label htmlFor="doc-to" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.documentTranslation.toLabel}</label>
                 <select value={toLang} onChange={e => setToLang(e.target.value as Lang)} className="field" id="doc-to">
                   {LANGS.map(l => <option key={l} value={l}>{uz.langs[l]}</option>)}
                 </select>

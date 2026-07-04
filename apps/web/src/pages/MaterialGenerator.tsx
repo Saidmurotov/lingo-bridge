@@ -55,11 +55,11 @@ const MaterialGenerator: React.FC = () => {
         {/* Form */}
         <div className="card space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.subjectLabel}</label>
+            <label htmlFor="mat-subject" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.subjectLabel}</label>
             <input value={subject} onChange={e => setSubject(e.target.value)} className="field" placeholder={uz.materials.subjectPlaceholder} id="mat-subject" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.topicLabel}</label>
+            <label htmlFor="mat-topic" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.topicLabel}</label>
             <input value={topic} onChange={e => setTopic(e.target.value)} className="field" placeholder={uz.materials.topicPlaceholder} id="mat-topic" />
           </div>
           <div>
@@ -78,19 +78,19 @@ const MaterialGenerator: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.typeLabel}</label>
+            <label htmlFor="mat-type" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.typeLabel}</label>
             <select value={type} onChange={e => setType(e.target.value as MaterialType)} className="field" id="mat-type">
               {TYPES.map(t => <option key={t} value={t}>{uz.materialTypes[t]}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.outputLangLabel}</label>
+            <label htmlFor="mat-lang" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.outputLangLabel}</label>
             <select value={outputLang} onChange={e => setOutputLang(e.target.value as Lang)} className="field" id="mat-lang">
               {LANGS.map(l => <option key={l} value={l}>{uz.langs[l]}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.notesLabel} <span className="eyebrow">{uz.common.optional}</span></label>
+            <label htmlFor="mat-notes" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.materials.notesLabel} <span className="eyebrow">{uz.common.optional}</span></label>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} className="field" rows={2} placeholder={uz.materials.notesPlaceholder} id="mat-notes" />
           </div>
           <button onClick={handleGenerate} disabled={loading || !topic.trim()} className="btn btn-primary w-full" id="generate-btn">

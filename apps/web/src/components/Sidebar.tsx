@@ -49,7 +49,7 @@ const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClo
               {uz.common.appName}
             </span>
           </Link>
-          <button onClick={onClose} className="md:hidden text-[var(--muted)] hover:text-[var(--ink)]">✕</button>
+          <button onClick={onClose} aria-label={uz.nav.closeMenu} className="md:hidden text-[var(--muted)] hover:text-[var(--ink)]">✕</button>
         </div>
 
         {/* Nav */}
@@ -131,7 +131,7 @@ const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClo
 
 const TopBar: React.FC<{ onMenuClick: () => void }> = ({ onMenuClick }) => (
   <header className="md:hidden sticky top-0 z-30 bg-[var(--surface)] border-b border-[var(--line)] flex items-center px-4 h-14 gap-3">
-    <button onClick={onMenuClick} className="text-[var(--ink-soft)] p-1">
+    <button onClick={onMenuClick} aria-label={uz.nav.openMenu} className="text-[var(--ink-soft)] p-1">
       <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
         <path d="M3 12h18M3 6h18M3 18h18" strokeLinecap="round"/>
       </svg>

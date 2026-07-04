@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import type { HistoryItem, Paginated } from 'shared';
 import { useAuth } from '../components/AuthProvider';
+import { fetchApi } from '../lib/api';
 import { uz } from '../lib/strings';
 
 const QUICK_ACTIONS = [
@@ -9,14 +11,40 @@ const QUICK_ACTIONS = [
   { to: '/material',             icon: '📚', label: uz.dashboard.actionMaterials,      desc: uz.dashboard.actionMaterialsDesc,      color: 'var(--aqua-soft)', border: 'var(--brand)' },
 ];
 
-const STAT_CARDS = [
-  { label: uz.dashboard.statTranslations, value: '—', icon: '⚡' },
-  { label: uz.dashboard.statDocuments,    value: '—', icon: '📄' },
-  { label: uz.dashboard.statMaterials,    value: '—', icon: '📚' },
-];
+interface Stats {
+  quick: number | null;
+  document: number | null;
+  material: number | null;
+}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState<Stats>({ quick: null, document: null, material: null });
+
+  // The history endpoint reports a per-type total; limit=1 keeps payloads tiny.
+  useEffect(() => {
+    let cancelled = false;
+    const load = async (type: HistoryItem['type']): Promise<number | null> => {
+      try {
+        const res = await fetchApi<Paginated<HistoryItem>>(`/history?type=${type}&limit=1`);
+        return res.data.total;
+      } catch {
+        return null;
+      }
+    };
+    void Promise.all([load('quick'), load('document'), load('material')]).then(([quick, document, material]) => {
+      if (!cancelled) setStats({ quick, document, material });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const statCards = [
+    { label: uz.dashboard.statTranslations, value: stats.quick, icon: '⚡' },
+    { label: uz.dashboard.statDocuments,    value: stats.document, icon: '📄' },
+    { label: uz.dashboard.statMaterials,    value: stats.material, icon: '📚' },
+  ];
 
   return (
     <div className="animate-fade-in max-w-5xl">
@@ -37,12 +65,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {STAT_CARDS.map(s => (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {statCards.map(s => (
           <div key={s.label} className="card text-center">
             <div className="text-2xl mb-1">{s.icon}</div>
             <p className="eyebrow mb-1">{s.label}</p>
-            <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '1.75rem', fontWeight: 500, color: 'var(--brand)' }}>{s.value}</p>
+            <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '1.75rem', fontWeight: 500, color: 'var(--brand)' }}>
+              {s.value === null ? '—' : s.value.toLocaleString('uz-UZ')}
+            </p>
           </div>
         ))}
       </div>

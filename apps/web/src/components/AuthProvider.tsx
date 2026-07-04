@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { UserDto } from 'shared';
+import { API_BASE_URL, AUTH_LOGOUT_EVENT, clearSession } from '../lib/api';
 
 interface AuthContextType {
   user: UserDto | null;
@@ -25,6 +26,13 @@ function readStoredUser(): UserDto | null {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserDto | null>(readStoredUser);
 
+  // fetchApi clears the session and fires this event when a token refresh fails.
+  useEffect(() => {
+    const onForcedLogout = (): void => setUser(null);
+    window.addEventListener(AUTH_LOGOUT_EVENT, onForcedLogout);
+    return () => window.removeEventListener(AUTH_LOGOUT_EVENT, onForcedLogout);
+  }, []);
+
   const login = (userData: UserDto, accessToken: string, refreshToken: string): void => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -33,10 +41,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = (): void => {
+    // Revoke the refresh token server-side; fire-and-forget so logout is instant.
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      void fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      }).catch(() => undefined);
+    }
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    clearSession();
   };
 
   return (

@@ -65,6 +65,8 @@ export const uz = {
     review: 'Tekshirish',
     admin: 'Admin panel',
     toggleTheme: 'Mavzu almashtirish',
+    openMenu: 'Menyuni ochish',
+    closeMenu: 'Menyuni yopish',
     logout: 'Chiqish',
     login: 'Kirish',
     register: "Ro'yxatdan o'tish",
@@ -122,6 +124,8 @@ export const uz = {
   quickTranslate: {
     title: 'Tezkor tarjima',
     swapTitle: 'Tillarni almashtirish',
+    fromLabel: 'Asl til',
+    toLabel: 'Tarjima tili',
     charSuffix: 'belgi',
     academicMode: 'Akademik rejim',
     translate: 'Tarjima qilish',
@@ -150,6 +154,8 @@ export const uz = {
     download: 'Yuklab olish',
     genericUploadError: 'Yuklash amalga oshmadi',
     genericDownloadError: "Faylni yuklab olishda xato yuz berdi",
+    invalidTypeError: 'Faqat PDF, DOCX, JPG yoki PNG fayllar qabul qilinadi',
+    tooLargeError: 'Fayl hajmi 20MB dan oshmasligi kerak',
   },
   materials: {
     title: 'Material yaratish',
@@ -179,6 +185,7 @@ export const uz = {
     },
     headers: ['Sana', 'Tur', 'Tafsilot', 'Holat', 'Amal'],
     empty: 'Tarix mavjud emas.',
+    loadError: "Tarixni yuklab bo'lmadi. Sahifani yangilab ko'ring.",
   },
   translatorReview: {
     eyebrow: 'Tarjimon paneli',
@@ -203,6 +210,9 @@ export const uz = {
     auditPlaceholder: "[Audit log ma'lumotlari bu yerda ko'rinadi]",
     systemTitle: 'Tizim holati',
     serviceRunning: 'Ishlayapti',
-    services: ['API server', 'Redis', 'MinIO', 'doc-worker'],
+    serviceDown: 'Xato',
+    serviceUnknown: "Noma'lum",
+    services: ['Redis', 'MinIO', 'doc-worker'],
+    apiServer: 'API server',
   },
 } as const;

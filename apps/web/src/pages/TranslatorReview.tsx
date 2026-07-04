@@ -48,6 +48,7 @@ const TranslatorReview: React.FC = () => {
       {error && <p className="mb-4 text-sm" style={{ color: 'var(--danger)' }}>{error}</p>}
 
       <div className="card p-0 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--line)' }}>
             <tr>
@@ -69,7 +70,7 @@ const TranslatorReview: React.FC = () => {
                   <td className="p-4 text-sm" style={{ color: 'var(--ink)' }}>{job.fromLang} → {job.toLang}</td>
                   <td className="p-4 mono text-xs" style={{ color: 'var(--ink-soft)' }}>{new Date(job.createdAt).toLocaleDateString('uz-UZ')}</td>
                   <td className="p-4"><span className="badge badge-review">{uz.statuses.REVIEW}</span></td>
-                  <td className="p-4 flex gap-2">
+                  <td className="p-4">
                     <button
                       onClick={() => { void handleVerify(job.id); }}
                       disabled={verifying === job.id}
@@ -84,6 +85,7 @@ const TranslatorReview: React.FC = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

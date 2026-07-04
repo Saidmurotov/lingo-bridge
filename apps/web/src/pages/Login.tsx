@@ -92,24 +92,26 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.login.emailLabel}</label>
+              <label htmlFor="login-email" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.login.emailLabel}</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="field"
                 placeholder={uz.login.emailPlaceholder}
                 id="login-email"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.login.passwordLabel}</label>
+              <label htmlFor="login-password" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-soft)' }}>{uz.login.passwordLabel}</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="field"
                 placeholder={uz.login.passwordPlaceholder}
                 id="login-password"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchApi } from '../lib/api';
+import { API_BASE_URL, fetchApi } from '../lib/api';
 import { uz } from '../lib/strings';
 
 interface AdminStats {
@@ -26,12 +26,19 @@ const STAT_CARDS: StatCard[] = [
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetchApi<AdminStats>('/admin/stats')
       .then(res => setStats(res.data))
       .catch((err: unknown) => console.error('Failed to load admin stats', err))
       .finally(() => setLoading(false));
+
+    // Only the API exposes a health endpoint the browser can reach; the other
+    // services are internal, so their state is honestly shown as unknown.
+    fetch(`${API_BASE_URL}/health`)
+      .then(res => setApiHealthy(res.ok))
+      .catch(() => setApiHealthy(false));
   }, []);
 
   return (
@@ -81,10 +88,20 @@ const AdminDashboard: React.FC = () => {
 
         <div className="card">
           <h3 style={{ fontFamily: 'Fraunces, serif', fontWeight: 500, color: 'var(--ink)', marginBottom: '1rem' }}>{uz.admin.systemTitle}</h3>
+          <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--line)' }}>
+            <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>{uz.admin.apiServer}</span>
+            {apiHealthy === null ? (
+              <span className="chip">…</span>
+            ) : apiHealthy ? (
+              <span className="badge badge-done">{uz.admin.serviceRunning}</span>
+            ) : (
+              <span className="badge badge-failed">{uz.admin.serviceDown}</span>
+            )}
+          </div>
           {uz.admin.services.map(svc => (
             <div key={svc} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--line)' }}>
               <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>{svc}</span>
-              <span className="badge badge-done">{uz.admin.serviceRunning}</span>
+              <span className="chip">{uz.admin.serviceUnknown}</span>
             </div>
           ))}
         </div>

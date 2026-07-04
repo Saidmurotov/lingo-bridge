@@ -21,12 +21,13 @@ const History: React.FC = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
 
   useEffect(() => {
     fetchApi<Paginated<HistoryItem>>('/history')
       .then(res => setItems(res.data.items))
-      .catch((err: unknown) => console.error('Failed to load history', err))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -54,6 +55,7 @@ const History: React.FC = () => {
       </div>
 
       <div className="card p-0 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--line)' }}>
             <tr>
@@ -65,6 +67,8 @@ const History: React.FC = () => {
           <tbody style={{ borderTop: '1px solid var(--line)' }}>
             {loading ? (
               <tr><td colSpan={5} className="p-8 text-center" style={{ color: 'var(--muted)' }}>{uz.common.loading}</td></tr>
+            ) : loadError ? (
+              <tr><td colSpan={5} className="p-8 text-center" style={{ color: 'var(--danger)' }}>{uz.history.loadError}</td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={5} className="p-8 text-center" style={{ color: 'var(--muted)', fontStyle: 'italic' }}>{uz.history.empty}</td></tr>
             ) : (
@@ -93,7 +97,7 @@ const History: React.FC = () => {
                   <td className="p-4">
                     {item.type === 'document' && (
                       <button
-                        onClick={() => navigate('/document-translation')}
+                        onClick={() => navigate(`/document-translation?job=${item.id}`)}
                         className="btn btn-ghost"
                         style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem' }}
                       >
@@ -106,6 +110,7 @@ const History: React.FC = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

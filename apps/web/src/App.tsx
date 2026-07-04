@@ -11,10 +11,15 @@ import TranslatorReview from './pages/TranslatorReview';
 import AdminDashboard from './pages/AdminDashboard';
 import { Sidebar, TopBar } from './components/Sidebar';
 import { AuthProvider, useAuth } from './components/AuthProvider';
+import type { Role } from 'shared';
 
-const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+const PrivateRoute: React.FC<{ children: React.ReactElement; roles?: Role[] }> = ({ children, roles }) => {
   const { user } = useAuth();
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  // Server enforces authorization too; this guard just keeps users out of pages
+  // their role can never use.
+  if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+  return children;
 };
 
 const AppShell: React.FC = () => {
@@ -40,8 +45,9 @@ const AppShell: React.FC = () => {
                   <Route path="/document-translation" element={<PrivateRoute><DocumentTranslation /></PrivateRoute>} />
                   <Route path="/material" element={<PrivateRoute><MaterialGenerator /></PrivateRoute>} />
                   <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-                  <Route path="/translator" element={<PrivateRoute><TranslatorReview /></PrivateRoute>} />
-                  <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+                  <Route path="/translator" element={<PrivateRoute roles={['TRANSLATOR', 'ADMIN']}><TranslatorReview /></PrivateRoute>} />
+                  <Route path="/admin" element={<PrivateRoute roles={['ADMIN']}><AdminDashboard /></PrivateRoute>} />
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </main>
             </div>

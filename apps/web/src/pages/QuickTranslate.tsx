@@ -7,6 +7,8 @@ type FromLangOption = Lang | 'AUTO';
 
 const FROM_LANGS: FromLangOption[] = ['AUTO', 'UZ', 'EN', 'RU'];
 const TO_LANGS: Lang[] = ['UZ', 'EN', 'RU'];
+// Mirrors the API's z.string().max(10_000) limit (docs/04 §3).
+const MAX_CHARS = 10_000;
 
 const QuickTranslate: React.FC = () => {
   const [text, setText] = useState('');
@@ -17,12 +19,6 @@ const QuickTranslate: React.FC = () => {
   const [toLang, setToLang] = useState<Lang>('UZ');
   const [academic, setAcademic] = useState(false);
   const [detectedLang, setDetectedLang] = useState<Lang | null>(null);
-  const [charCount, setCharCount] = useState(0);
-
-  const handleTextChange = (v: string): void => {
-    setText(v);
-    setCharCount(v.length);
-  };
 
   const handleSwap = (): void => {
     const newTo: Lang = fromLang === 'AUTO' ? (detectedLang ?? 'EN') : fromLang;
@@ -30,7 +26,6 @@ const QuickTranslate: React.FC = () => {
     setToLang(newTo);
     setText(result);
     setResult(text);
-    setCharCount(result.length);
   };
 
   const handleTranslate = async (): Promise<void> => {
@@ -90,6 +85,7 @@ const QuickTranslate: React.FC = () => {
             className="field"
             style={{ width: 'auto', padding: '0.375rem 0.75rem' }}
             id="from-lang"
+            aria-label={uz.quickTranslate.fromLabel}
           >
             {FROM_LANGS.map(l => <option key={l} value={l}>{uz.langs[l]}</option>)}
           </select>
@@ -100,6 +96,7 @@ const QuickTranslate: React.FC = () => {
             className="btn btn-ghost"
             style={{ padding: '0.375rem 0.75rem', fontSize: '1rem' }}
             title={uz.quickTranslate.swapTitle}
+            aria-label={uz.quickTranslate.swapTitle}
             id="swap-btn"
           >
             ⇄
@@ -111,6 +108,7 @@ const QuickTranslate: React.FC = () => {
             className="field"
             style={{ width: 'auto', padding: '0.375rem 0.75rem' }}
             id="to-lang"
+            aria-label={uz.quickTranslate.toLabel}
           >
             {TO_LANGS.map(l => <option key={l} value={l}>{uz.langs[l]}</option>)}
           </select>
@@ -126,7 +124,9 @@ const QuickTranslate: React.FC = () => {
           </label>
 
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <span className="eyebrow">{charCount} {uz.quickTranslate.charSuffix}</span>
+            <span className="eyebrow" style={text.length >= MAX_CHARS ? { color: 'var(--danger)' } : undefined}>
+              {text.length.toLocaleString('uz-UZ')}/{MAX_CHARS.toLocaleString('uz-UZ')} {uz.quickTranslate.charSuffix}
+            </span>
             <button
               onClick={handleTranslate}
               disabled={loading || !text.trim()}
@@ -142,10 +142,12 @@ const QuickTranslate: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: 280 }}>
           <textarea
             value={text}
-            onChange={e => handleTextChange(e.target.value)}
+            onChange={e => setText(e.target.value)}
+            maxLength={MAX_CHARS}
             className="w-full h-full p-5 bg-transparent border-none outline-none resize-none"
             style={{ color: 'var(--ink)', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: '1rem' }}
             placeholder={uz.quickTranslate.sourcePlaceholder}
+            aria-label={uz.quickTranslate.sourcePlaceholder}
             id="source-text"
           />
           <div
